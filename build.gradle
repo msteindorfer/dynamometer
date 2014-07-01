@@ -1,0 +1,40 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+group = 'nl.cwi.swat'
+version = '0.0.1'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+guaveVersion = '17.0'
+
+dependencies {
+    testCompile group: 'com.google.guava', name: 'guava', version: guaveVersion
+    testCompile group: 'com.google.guava', name: 'guava-tests', version: guaveVersion
+    testCompile group: 'com.google.guava', name: 'guava-testlib', version: guaveVersion
+
+    testCompile group: 'junit', name: 'junit', version: '4.11+'
+
+    testCompile group: 'com.google', name: 'memory-measurer', version: '1.0-SNAPSHOT'
+    testCompile group: 'org.clojure', name: 'clojure', version: '1.6.0'
+    testCompile group: 'org.scala-lang', name: 'scala-library', version: '2.11.0'
+	testCompile group: 'org.eclipse.imp', name: 'org.eclipse.imp.pdb.values', version: '0.4.1.qualifier'
+   	testCompile group: 'com.goldmansachs', name: 'gs-collections-api', version: '5.0.0'
+	testCompile group: 'com.goldmansachs', name: 'gs-collections', version: '5.0.0'
+}
+
+jar {
+    manifest {
+//        name = ''
+//        symbolicName = ''
+
+        attributes 'Implementation-Title': 'Data structures based on Hash Array Mapped Tries',
+                'Implementation-Version': version
+    }
+}
