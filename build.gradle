@@ -12,21 +12,37 @@ repositories {
     mavenLocal()
 }
 
-guaveVersion = '17.0'
+project.ext {
+	guaveVersion = '17.0'
+}
 
 dependencies {
-    testCompile group: 'com.google.guava', name: 'guava', version: guaveVersion
-    testCompile group: 'com.google.guava', name: 'guava-tests', version: guaveVersion
-    testCompile group: 'com.google.guava', name: 'guava-testlib', version: guaveVersion
+    testCompile group: 'com.google.guava', name: 'guava', version: project.guaveVersion
+    testCompile group: 'com.google.guava', name: 'guava-tests', version: project.guaveVersion
+    testCompile group: 'com.google.guava', name: 'guava-testlib', version: project.guaveVersion
 
     testCompile group: 'junit', name: 'junit', version: '4.11+'
 
     testCompile group: 'com.google', name: 'memory-measurer', version: '1.0-SNAPSHOT'
     testCompile group: 'org.clojure', name: 'clojure', version: '1.6.0'
-    testCompile group: 'org.scala-lang', name: 'scala-library', version: '2.11.0'
+    testCompile group: 'org.scala-lang', name: 'scala-library', version: '2.11.2'
 	testCompile group: 'org.eclipse.imp', name: 'org.eclipse.imp.pdb.values', version: '0.4.1.qualifier'
    	testCompile group: 'com.goldmansachs', name: 'gs-collections-api', version: '5.0.0'
 	testCompile group: 'com.goldmansachs', name: 'gs-collections', version: '5.0.0'
+}
+
+/**
+ * http://stackoverflow.com/questions/21906736/how-do-i-set-jvm-options-for-gradleworkermain
+ */
+tasks.withType(JavaForkOptions) {
+    jvmArgs "-javaagent:/Users/Michael/.m2/repository/com/google/memory-measurer/1.0-SNAPSHOT/memory-measurer-1.0-SNAPSHOT.jar"
+    jvmArgs "-Xmx12G"
+    jvmArgs "-XX:+UseCompressedOops"
+}
+
+test {
+	// speed up data gathering
+	enableAssertions = false
 }
 
 jar {

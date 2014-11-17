@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -59,7 +60,7 @@ public class TrieMapVsOthersFootprint {
 	private static final IValueFactory valueFactory = ValueFactory.getInstance();
 
 	private static boolean reportSet = true;
-	private static boolean reportMap = false;
+	private static boolean reportMap = true;
 
 //	private static int size;
 //	private static int run;
@@ -116,20 +117,49 @@ public class TrieMapVsOthersFootprint {
 		return setWriter.done();
 	}	
 	
-	public void timeTrieSet(final ISet testSet, int elementCount, int run) {
-		TransientSet<IValue> transientSet = TrieSet.<IValue>transientOf(); 
-		TransientMap<IValue, IValue> transientMap = TrieMap.<IValue, IValue>transientOf();		
+	public static java.util.Set<java.lang.Integer> setUpTestSetWithRandomContentInt(int size, int run) throws Exception {
+//		TrieMapVsOthersFootprint.size = size;
 		
+		java.util.Set<java.lang.Integer> setWriter = new HashSet<>();
+	
+		// random data generator with fixed seed
+		Random rand = new Random(size + 13 * run);
+		
+		for (int i = size; i > 0; i--) {
+			final int j = rand.nextInt();
+//			final IValue current = valueFactory.integer(j); 
+						
+			setWriter.add(j);
+		}
+
+		return Collections.unmodifiableSet(setWriter);
+	}	
+	
+	public void timeTrieSet(final ISet testSet, int elementCount, int run) {		
+//		TransientSet<IValue> transientSet = TrieSet_5Bits.<IValue>transientOf(); 
+//		TransientMap<IValue, IValue> transientMap = TrieMap_5Bits.<IValue, IValue>transientOf();		
+//		
+//		for (IValue v : testSet) {
+//			if (reportSet) transientSet.__insert(v);
+//			if (reportMap) transientMap.__put(v, v);
+//		}
+//		
+//		ImmutableSet<IValue> xs = transientSet.freeze();
+//		ImmutableMap<IValue, IValue> ys = transientMap.freeze();
+		
+		ImmutableSet<IValue> xs = TrieSet_5Bits.<IValue>of();
+		ImmutableMap<IValue, IValue> ys = TrieMap_5Bits.<IValue, IValue>of();
+				
 		for (IValue v : testSet) {
-			transientSet.__insert(v);
-			transientMap.__put(v, v);
+			if (reportSet) xs = xs.__insert(v);
+			if (reportMap) ys = ys.__put(v, v);
 		}
 		
-		ImmutableSet<IValue> xs = transientSet.freeze();
-		ImmutableMap<IValue, IValue> ys = transientMap.freeze();
+		((TrieSet_5Bits) xs).printStatistics();
+		((TrieMap_5Bits) ys).printStatistics();		
 		
-		if (reportSet) measureAndReport(xs, "org.eclipse.imp.pdb.facts.util.TrieSet", SET, PERSISTENT, false, elementCount, run);
-		if (reportMap) measureAndReport(ys, "org.eclipse.imp.pdb.facts.util.TrieMap", MAP, PERSISTENT, false, elementCount, run);
+		if (reportSet) measureAndReport(xs, "org.eclipse.imp.pdb.facts.util.TrieSet_5Bits", SET, PERSISTENT, false, elementCount, run);
+		if (reportMap) measureAndReport(ys, "org.eclipse.imp.pdb.facts.util.TrieMap_5Bits", MAP, PERSISTENT, false, elementCount, run);
 	}	
 	
 	public void timeTrieSet0To4(final ISet testSet, int elementCount, int run) {
@@ -137,8 +167,8 @@ public class TrieMapVsOthersFootprint {
 //		TransientMap<IValue, IValue> transientMap = TrieMap0To4.<IValue, IValue>transientOf();		
 //		
 //		for (IValue v : testSet) {
-//			transientSet.__insert(v);
-//			transientMap.__put(v, v);
+//			if (reportSet) transientSet.__insert(v);
+//			if (reportMap) transientMap.__put(v, v);
 //		}
 //		
 //		ImmutableSet<IValue> xs = transientSet.freeze();
@@ -153,8 +183,8 @@ public class TrieMapVsOthersFootprint {
 //		TransientMap<IValue, IValue> transientMap = TrieMap0To8.<IValue, IValue>transientOf();
 //		
 //		for (IValue v : testSet) {
-//			transientSet.__insert(v);
-//			transientMap.__put(v, v);
+//			if (reportSet) transientSet.__insert(v);
+//			if (reportMap) transientMap.__put(v, v);
 //		}
 //		
 //		ImmutableSet<IValue> xs = transientSet.freeze();
@@ -169,8 +199,8 @@ public class TrieMapVsOthersFootprint {
 //		TransientMap<IValue, IValue> transientMap = TrieMap0To12.<IValue, IValue>transientOf();
 //		
 //		for (IValue v : testSet) {
-//			transientSet.__insert(v);
-//			transientMap.__put(v, v);
+//			if (reportSet) transientSet.__insert(v);
+//			if (reportMap) transientMap.__put(v, v);
 //		}
 //		
 //		ImmutableSet<IValue> xs = transientSet.freeze();
@@ -180,29 +210,68 @@ public class TrieMapVsOthersFootprint {
 //		if (reportMap) measureAndReport(ys, "org.eclipse.imp.pdb.facts.util.TrieMap0To12", MAP, PERSISTENT, false, elementCount, run);
 	}		
 	
-	public void timeTrieSetDynamic(final ISet testSet, int elementCount, int run) {
-//		TransientSet<IValue> transientSet = TrieSetDynamic.<IValue>transientOf(); 
-//		TransientMap<IValue, IValue> transientMap = TrieMapDynamic.<IValue, IValue>transientOf();		
+	public void timeTrieSetSpecializationWithUntypedVariables(final ISet testSet, int elementCount, int run) {
+		TransientSet<IValue> transientSet = TrieSet_5Bits_Untyped_Spec0To8.<IValue>transientOf(); 
+		TransientMap<IValue, IValue> transientMap = TrieMap_5Bits_Untyped_Spec0To8.<IValue, IValue>transientOf();		
+		
+		for (IValue v : testSet) {
+			if (reportSet) transientSet.__insert(v);
+			if (reportMap) transientMap.__put(v, v);
+		}
+		
+		ImmutableSet<IValue> xs = transientSet.freeze();
+		ImmutableMap<IValue, IValue> ys = transientMap.freeze();
+		
+//		((TrieSetSpecializationWithUntypedVariables) xs).printStatistics();
+//		((TrieMapSpecializationWithUntypedVariables) ys).printStatistics();
+		
+		if (reportSet) measureAndReport(xs, "org.eclipse.imp.pdb.facts.util.TrieSetSpecializationWithUntypedVariables", SET, PERSISTENT, false, elementCount, run);
+		if (reportMap) measureAndReport(ys, "org.eclipse.imp.pdb.facts.util.TrieMapSpecializationWithUntypedVariables", MAP, PERSISTENT, false, elementCount, run);
+	}	
+	
+	public void timeTrieSet_BleedingEdge(final ISet testSet, int elementCount, int run) {
+		TransientSet<IValue> transientSet = TrieSet_BleedingEdge.<IValue>transientOf(); 
+		TransientMap<IValue, IValue> transientMap = TrieMap_BleedingEdge.<IValue, IValue>transientOf();		
+		
+		for (IValue v : testSet) {
+			if (reportSet) transientSet.__insert(v);
+			if (reportMap) transientMap.__put(v, v);
+		}
+		
+		ImmutableSet<IValue> xs = transientSet.freeze();
+		ImmutableMap<IValue, IValue> ys = transientMap.freeze();
+		
+		if (reportSet) measureAndReport(xs, "org.eclipse.imp.pdb.facts.util.TrieSet_BleedingEdge", SET, PERSISTENT, false, elementCount, run);
+		if (reportMap) measureAndReport(ys, "org.eclipse.imp.pdb.facts.util.TrieMap_BleedingEdge", MAP, PERSISTENT, false, elementCount, run);
+	}	
+	
+	// TODO
+	public void timeTrieSetSpecializationInt(final java.util.Set<java.lang.Integer> testSet, int elementCount, int run) {
+//		TransientSet<java.lang.Integer> transientSet = TrieSet_IntKey_IntValue.transientOf(); 
+//		TransientMap<java.lang.Integer, java.lang.Integer> transientMap = TrieMap_IntKey_IntValue.<IValue, IValue>transientOf();		
 //		
-//		for (IValue v : testSet) {
-//			transientSet.__insert(v);
-//			transientMap.__put(v, v);
+//		for (int v : testSet) {
+//			if (reportSet) transientSet.__insert(v);
+//			if (reportMap) transientMap.__put(v, v);
 //		}
 //		
-//		ImmutableSet<IValue> xs = transientSet.freeze();
-//		ImmutableMap<IValue, IValue> ys = transientMap.freeze();
+//		ImmutableSet<java.lang.Integer> xs = transientSet.freeze();
+//		ImmutableMap<java.lang.Integer, java.lang.Integer> ys = transientMap.freeze();
 //		
-//		if (reportSet) measureAndReport(xs, "org.eclipse.imp.pdb.facts.util.TrieSetDynamic", SET, PERSISTENT, false, elementCount, run);
-//		if (reportMap) measureAndReport(ys, "org.eclipse.imp.pdb.facts.util.TrieMapDynamic", MAP, PERSISTENT, false, elementCount, run);
-	}	
+////		((TrieSetSpecializationInt) xs).printStatistics();
+////		((TrieMapSpecializationWithUntypedVariables) ys).printStatistics();
+//		
+//		if (reportSet) measureAndReport(xs, "org.eclipse.imp.pdb.facts.util.TrieSetSpecializationInt", SET, PERSISTENT, false, elementCount, run);
+//		if (reportMap) measureAndReport(ys, "org.eclipse.imp.pdb.facts.util.TrieMapSpecializationInt", MAP, PERSISTENT, false, elementCount, run);
+	}		
 	
 	public void timeJavaMutable(final ISet testSet, int elementCount, int run) {
 		Set<IValue> xs = new HashSet<>();
 		Map<IValue, IValue> ys = new HashMap<>();
 		
 		for (IValue v : testSet) {
-			xs.add(v);
-			ys.put(v, v);
+			if (reportSet) xs.add(v);
+			if (reportMap) ys.put(v, v);
 		}
 		
 		if (reportSet) measureAndReport(xs, "java.util.HashSet", SET, MUTABLE, true, elementCount, run);
@@ -214,8 +283,8 @@ public class TrieMapVsOthersFootprint {
 		Map<IValue, IValue> ys = new com.gs.collections.impl.map.mutable.UnifiedMap<>();
 		
 		for (IValue v : testSet) {
-			xs.add(v);
-			ys.put(v, v);
+			if (reportSet) xs.add(v);
+			if (reportMap) ys.put(v, v);
 		}
 		
 		if (reportSet) measureAndReport(xs, "com.gs.collections.impl.set.mutable.UnifiedSet", SET, MUTABLE, true, elementCount, run);
@@ -227,8 +296,8 @@ public class TrieMapVsOthersFootprint {
 		com.google.common.collect.ImmutableMap.Builder<IValue, IValue> ysBldr = com.google.common.collect.ImmutableMap.builder();
 		
 		for (IValue v : testSet) {
-			xsBldr.add(v);
-			ysBldr.put(v, v);
+			if (reportSet) xsBldr.add(v);
+			if (reportMap) ysBldr.put(v, v);
 		}
 		
 		com.google.common.collect.ImmutableSet<IValue> xs = xsBldr.build();
@@ -252,8 +321,8 @@ public class TrieMapVsOthersFootprint {
 		ITransientMap ys = (ITransientMap) PersistentHashMap.EMPTY.asTransient();
 
 		for (IValue v : testSet) {
-			xs = (ITransientSet) xs.conj(v);
-			ys = (ITransientMap) ys.assoc(v, v);
+			if (reportSet) xs = (ITransientSet) xs.conj(v);
+			if (reportMap) ys = (ITransientMap) ys.assoc(v, v);
 		}
 		
 		if (reportSet) measureAndReport(xs, "clojure.lang.TransientHashSet", SET, PERSISTENT, true, elementCount, run);
@@ -265,8 +334,8 @@ public class TrieMapVsOthersFootprint {
 		IPersistentMap ys = (IPersistentMap) PersistentHashMap.EMPTY;
 		
 		for (IValue v : testSet) {
-			xs = (IPersistentSet) xs.cons(v);
-			ys = (IPersistentMap) ys.assoc(v, v);
+			if (reportSet) xs = (IPersistentSet) xs.cons(v);
+			if (reportMap) ys = (IPersistentMap) ys.assoc(v, v);
 		}
 		
 		if (reportSet) measureAndReport(xs, "clojure.lang.PersistentHashSet", SET, PERSISTENT, true, elementCount, run);
@@ -278,8 +347,8 @@ public class TrieMapVsOthersFootprint {
 		scala.collection.immutable.HashMap<IValue, IValue> ys = new scala.collection.immutable.HashMap<>();
 		
 		for (IValue v : testSet) {
-			xs = xs.$plus(v);
-			ys = ys.$plus(new Tuple2<>(v, v));
+			if (reportSet) xs = xs.$plus(v);
+			if (reportMap) ys = ys.$plus(new Tuple2<>(v, v));
 		}
 
 		if (reportSet) measureAndReport(xs, "scala.collection.immutable.HashSet", SET, PERSISTENT, false, elementCount, run);
@@ -291,8 +360,8 @@ public class TrieMapVsOthersFootprint {
 		scala.collection.mutable.HashMap<IValue, IValue> ys = new scala.collection.mutable.HashMap<>();
 		
 		for (IValue v : testSet) {
-			xs = xs.$plus$eq(v);
-			ys = ys.$plus$eq(new Tuple2<>(v, v));
+			if (reportSet) xs = xs.$plus$eq(v);
+			if (reportMap) ys = ys.$plus$eq(new Tuple2<>(v, v));
 		}
 
 		if (reportSet) measureAndReport(xs, "scala.collection.mutable.HashSet", SET, MUTABLE, true, elementCount, run);
@@ -377,10 +446,12 @@ public class TrieMapVsOthersFootprint {
 		// random data generator with fixed seed
 		Random rand = new Random(2305843009213693951L); // seed == Mersenne Prime #9	
 		
-		for (int i = 0; i < 256; i++) {
-			final int count = rand.nextInt(MAX);
-//		for (int exp = 3; exp <= 23; exp += 1) { // 13 .. 23
-//			final int count = (int) Math.pow(2, exp);
+//		for (int i = 0; i < 1; i++) { // i < 256
+//			final int count = rand.nextInt(MAX);
+////			final int count = 10_000;		
+			
+		for (int exp = 0; exp <= 23; exp += 1) { // 13 .. 23
+			final int count = (int) Math.pow(2, exp);
 			
 //			if (i < 214)
 //				continue;			
@@ -390,63 +461,37 @@ public class TrieMapVsOthersFootprint {
 //				ExecutorService pool = Executors.newFixedThreadPool(5);
 				
 				ISet tmpSet = null;
+				java.util.Set<java.lang.Integer> tmpSetInt = null;
 				
 				try {
 //					setUpTestSetWithRandomContent(count);
 					tmpSet = setUpTestSetWithRandomContent(count, run);
+					tmpSetInt = setUpTestSetWithRandomContentInt(count, run);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 				
 				final ISet testSet = tmpSet;
+				final java.util.Set<java.lang.Integer> testSetInt = tmpSetInt;
 				final int currentRun = run;
 				
-				timeTrieSet(testSet, count, currentRun);				
-				timeTrieSet0To4(testSet, count, currentRun);
-				timeTrieSet0To8(testSet, count, currentRun);
-				timeTrieSet0To12(testSet, count, currentRun);				
-				timeTrieSetDynamic(testSet, count, currentRun);
+				timeTrieSet(testSet, count, currentRun);
+//				timeTrieSet0To4(testSet, count, currentRun);
+//				timeTrieSet0To8(testSet, count, currentRun);
+//				timeTrieSet0To12(testSet, count, currentRun);	
+//				timeTrieSetSpecializationWithUntypedVariables(testSet, count, currentRun);
+//				timeTrieSetSpecializationInt(testSetInt, count, currentRun);
+//				timeTrieSet_BleedingEdge(testSet, count, currentRun);
 				timeClojurePersistent(testSet, count, currentRun);
 				timeScalaPersistent(testSet, count, currentRun);
 
-//				pool.execute(new Runnable() {				
-//					@Override
-//					public void run() {
-//					}
-//				});
-//				pool.execute(new Runnable() {				
-//					@Override
-//					public void run() {
-//					}
-//				});
-//				pool.execute(new Runnable() {				
-//					@Override
-//					public void run() {
-//					}
-//				});
-//				pool.execute(new Runnable() {				
-//					@Override
-//					public void run() {
-//					}
-//				});
-//				pool.execute(new Runnable() {				
-//					@Override
-//					public void run() {
-//					}
-//				});				
-//
-//				pool.shutdown();
-//				try {
-//					pool.awaitTermination(1, TimeUnit.HOURS);
-//				} catch (InterruptedException e) {
-//					e.printStackTrace();
-//				}
 				
-//						timeJavaMutable(testSet, count, currentRun);
-//						timeGSMutableUnifiedSet(testSet, count, currentRun);
-//						timeGuavaImmutable(testSet, count, currentRun);
+				// timeJavaMutable(testSet, count, currentRun);
+				// timeGSMutableUnifiedSet(testSet, count, currentRun);
+				// timeGuavaImmutable(testSet, count, currentRun);
 				// timeClojureTransient(testSet, count, currentRun);
-//						timeScalaMutable(testSet, count, currentRun);
+				// timeScalaMutable(testSet, count, currentRun);
+				
 			}
 		}		
 	}
